@@ -43,6 +43,7 @@ def check_and_tweet():
     with open('channel_data.json', 'r') as f:
         channels = json.load(f)
 
+    tweets_sent = False
     for channel in channels:
         current_count, profile_pic_url = fetch_channel_details(channel["id"])
         if current_count and channel["subscribers"] is not None:
@@ -59,11 +60,14 @@ def check_and_tweet():
                         media = api.media_upload(filename="profile_pic.jpg")
                         api.update_status(status=tweet_text, media_ids=[media.media_id])
                         print(f"Tweeted: {tweet_text}")
+                        tweets_sent = True
                     except Exception as e:
                         print(f"Error uploading profile picture for {channel['name']}: {e}")
                         api.update_status(status=tweet_text)
+                        tweets_sent = True
                 else:
                     api.update_status(status=tweet_text)
+                    tweets_sent = True
 
                 # Update the subscriber count in the channel data
                 channel["subscribers"] = current_count
@@ -71,6 +75,12 @@ def check_and_tweet():
     # Save the updated channel data back to the JSON file
     with open('channel_data.json', 'w') as f:
         json.dump(channels, f, indent=4)
+
+    # Print a summary message based on whether any tweets were sent
+    if tweets_sent:
+        print("Tweets sent for the following channels:")
+    else:
+        print("No tweets were sent.")
 
 if __name__ == "__main__":
     check_and_tweet()
