@@ -75,7 +75,7 @@ def check_and_tweet():
 
             if current_milestone > previous_milestone:  # Check if a new million milestone has been crossed
                 tweet_text = (f"{channel['name']} has crossed {current_milestone // 1000000} Million subscribers on YouTube!\n"
-                              f"#{channel['name'].replace(' ', '')} #youtuber")
+                              f"#{channel['name'].replace(' ', '')} #youtube")
 
                 try:
                     # Upload profile picture and tweet with media (if available)
