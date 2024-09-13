@@ -96,6 +96,9 @@ def check_and_tweet():
                     print(f"Tweeted: {tweet_text}")
                     tweets_sent = True
 
+                    # Update the subscriber count to the current count after tweeting
+                    channel["subscribers"] = current_count
+
                 except requests.exceptions.RequestException as e:
                     print(f"Error downloading image for {channel['name']}: {str(e)}")
                     if response:
@@ -109,10 +112,7 @@ def check_and_tweet():
                     if e.response:
                         print(f"Response content: {e.response.text}")
 
-                # Update the subscriber count in the channel data
-                channel["subscribers"] = current_count
-
-    # Save the updated channel data back to the JSON file
+    # Save the updated channel data back to the same JSON file
     with open('channel_data.json', 'w') as f:
         json.dump(channels, f, indent=4)
 
