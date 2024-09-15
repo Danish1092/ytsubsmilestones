@@ -4,7 +4,7 @@ import json
 from io import BytesIO
 
 # Use your actual API credentials for Twitter
-bearer_token = "YOUR_BEARER_TOKEN"
+bearer_token = "AAAAAAAAAAAAAAAAAAAAAO%2BIuQEAAAAAoKpWMVxs2qirbsdr3%2FZMaQCmt5g%3DjLb8hElyXKjXbAq3TF6iEGQtjdeXm8g3z39BrYgNFr3PhiDyQ9"
 consumer_key = "eNmC7WvB9jroA2t8z7O1nYEJA"
 consumer_secret = "RpL0Y6qtJmji9MlFRKxLUUuKsesjsHevSFOPYQAK5ZZ4DHMpFH"
 access_token = "1802930626775093248-79sbETqyPswk4akrh7DIXSYiqH63px"
@@ -56,8 +56,6 @@ def fetch_channel_details(channel_id):
 
     except requests.exceptions.RequestException as e:
         print(f"Error fetching details for channel {channel_id}: {str(e)}")
-        if response:
-            print(f"Response content: {response.text}")
         return None, None
 
 def check_and_tweet():
@@ -101,8 +99,6 @@ def check_and_tweet():
 
                 except requests.exceptions.RequestException as e:
                     print(f"Error downloading image for {channel['name']}: {str(e)}")
-                    if response:
-                        print(f"Response content: {response.text}")
 
                 except tweepy.TweepyException as e:
                     print(f"Error tweeting for {channel['name']}: {str(e)}")
