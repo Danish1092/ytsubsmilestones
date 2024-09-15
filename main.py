@@ -3,7 +3,7 @@ import requests
 import json
 from io import BytesIO
 
-# Use your actual API credentials for Twitter
+# Twitter API credentials
 bearer_token = "AAAAAAAAAAAAAAAAAAAAAO%2BIuQEAAAAAoKpWMVxs2qirbsdr3%2FZMaQCmt5g%3DjLb8hElyXKjXbAq3TF6iEGQtjdeXm8g3z39BrYgNFr3PhiDyQ9"
 consumer_key = "eNmC7WvB9jroA2t8z7O1nYEJA"
 consumer_secret = "RpL0Y6qtJmji9MlFRKxLUUuKsesjsHevSFOPYQAK5ZZ4DHMpFH"
@@ -42,13 +42,11 @@ def fetch_channel_details(channel_id):
         response.raise_for_status()
         data = response.json()
 
-        # Extract the subscriber count
         subscriber_count = data.get("subscriberCount")
 
-        # Extract the highest quality profile picture URL from the list of avatars
         profile_pics = data.get("avatar")
         if profile_pics and isinstance(profile_pics, list):
-            profile_pic_url = profile_pics[-1].get("url")  # Choose the largest available picture
+            profile_pic_url = profile_pics[-1].get("url")
         else:
             profile_pic_url = None
 
@@ -59,7 +57,6 @@ def fetch_channel_details(channel_id):
         return None, None
 
 def check_and_tweet():
-    # Load channel data from JSON file
     with open('channel_data.json', 'r') as f:
         channels = json.load(f)
 
@@ -67,55 +64,42 @@ def check_and_tweet():
     for channel in channels:
         current_count, profile_pic_url = fetch_channel_details(channel["id"])
         if current_count and channel["subscribers"] is not None:
-            # Round down to the nearest million for both current and stored counts
             current_milestone = (current_count // 1000000) * 1000000
             previous_milestone = (channel["subscribers"] // 1000000) * 1000000
 
-            if current_milestone > previous_milestone:  # Check if a new million milestone has been crossed
+            if current_milestone > previous_milestone:
                 tweet_text = (f"{channel['name']} has crossed {current_milestone // 1000000} Million subscribers on YouTube!\n"
                               f"#{channel['name'].replace(' ', '')} #youtube")
 
                 try:
-                    # Upload profile picture and tweet with media (if available)
                     if profile_pic_url:
                         response = requests.get(profile_pic_url)
-                        response.raise_for_status()  # Raise an exception for bad status codes
+                        response.raise_for_status()
                         image_bytes = BytesIO(response.content)
-
-                        # Upload the image from in-memory bytes
                         media_id = api.media_upload(filename="profile_pic.jpg", file=image_bytes).media_id_string
-                        
-                        # Create tweet with image using API v2
                         client.create_tweet(text=tweet_text, media_ids=[media_id])
                     else:
-                        # Just tweet text if no profile picture is available
                         client.create_tweet(text=tweet_text)
 
-                    print(f"Tweeted: {tweet_text}")
+                    print(f"Tweet sent: {tweet_text}")
                     tweets_sent = True
-
-                    # Update the subscriber count to the current count after tweeting
-                    channel["subscribers"] = current_count
 
                 except requests.exceptions.RequestException as e:
                     print(f"Error downloading image for {channel['name']}: {str(e)}")
-
                 except tweepy.TweepyException as e:
                     print(f"Error tweeting for {channel['name']}: {str(e)}")
-                    # Check if Twitter API response has more detailed error
                     if e.api_code:
                         print(f"API Code: {e.api_code}")
                     if e.response:
                         print(f"Response content: {e.response.text}")
 
-    # Save the updated channel data back to the same JSON file
+            channel["subscribers"] = current_count
+
     with open('channel_data.json', 'w') as f:
         json.dump(channels, f, indent=4)
 
-    if tweets_sent:
-        print("Tweets sent for the following channels.")
-    else:
-        print("No tweets were sent.")
+    if not tweets_sent:
+        print("No new milestones reached. Channel data updated.")
 
 if __name__ == "__main__":
     check_and_tweet()
