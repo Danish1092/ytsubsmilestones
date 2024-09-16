@@ -27,51 +27,62 @@ client = tweepy.Client(
 
 # RapidAPI credentials
 API_KEY = "2f8f894712msh7d82c6769d2fd10p198299jsn06206fa10e88"
-API_HOST = "yt-api.p.rapidapi.com"
+API_HOST = "youtube138.p.rapidapi.com"
 
 def fetch_channel_details(channel_id):
-    url = "https://yt-api.p.rapidapi.com/channel/about"
-    querystring = {"id": channel_id}
+    url = f"https://youtube138.p.rapidapi.com/channel/details/?id={channel_id}"
     headers = {
         "x-rapidapi-key": API_KEY,
         "x-rapidapi-host": API_HOST
     }
 
     try:
-        response = requests.get(url, headers=headers, params=querystring)
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
         data = response.json()
 
-        subscriber_count = data.get("subscriberCount")
+        # Extracting the subscriber count
+        subscriber_count = data["stats"]["subscribers"]
 
-        profile_pics = data.get("avatar")
-        if profile_pics and isinstance(profile_pics, list):
-            profile_pic_url = profile_pics[-1].get("url")
+        # Handling if subscriber count is an integer or string
+        if isinstance(subscriber_count, str):
+            subscriber_count = int(subscriber_count.replace('M', '000000').replace('K', '000').replace(',', ''))
         else:
-            profile_pic_url = None
+            subscriber_count = int(subscriber_count)
 
-        return subscriber_count, profile_pic_url
+        # Extracting profile picture URL
+        profile_picture_url = data["avatar"][0]["url"] if data.get("avatar") else None
+        return subscriber_count, profile_picture_url
 
     except requests.exceptions.RequestException as e:
         print(f"Error fetching details for channel {channel_id}: {str(e)}")
         return None, None
 
 def check_and_tweet():
+    # Load the channel data from the JSON file
     with open('channel_data.json', 'r') as f:
         channels = json.load(f)
 
     tweets_sent = False
+
+    # Loop through each channel in the JSON file
     for channel in channels:
         current_count, profile_pic_url = fetch_channel_details(channel["id"])
-        if current_count and channel["subscribers"] is not None:
+        if current_count is not None and channel["subscribers"] is not None:
+            # Calculate the next million milestone
             current_milestone = (current_count // 1000000) * 1000000
-            previous_milestone = (channel["subscribers"] // 1000000) * 1000000
+            previous_milestone = channel.get("last_tweeted_milestone", 0)
 
+            # Debugging: Checking the milestone calculation
+            print(f"Checking {channel['name']} - Current Milestone: {current_milestone}, Previous Milestone: {previous_milestone}")
+
+            # Check if the current milestone is greater than the previous one
             if current_milestone > previous_milestone:
                 tweet_text = (f"{channel['name']} has crossed {current_milestone // 1000000} Million subscribers on YouTube!\n"
                               f"#{channel['name'].replace(' ', '')} #youtube")
 
                 try:
+                    # Tweet with profile picture if available
                     if profile_pic_url:
                         response = requests.get(profile_pic_url)
                         response.raise_for_status()
@@ -79,10 +90,14 @@ def check_and_tweet():
                         media_id = api.media_upload(filename="profile_pic.jpg", file=image_bytes).media_id_string
                         client.create_tweet(text=tweet_text, media_ids=[media_id])
                     else:
+                        # Tweet without image if no profile picture is available
                         client.create_tweet(text=tweet_text)
 
                     print(f"Tweet sent: {tweet_text}")
                     tweets_sent = True
+
+                    # Update the last tweeted milestone after a successful tweet
+                    channel["last_tweeted_milestone"] = current_milestone
 
                 except requests.exceptions.RequestException as e:
                     print(f"Error downloading image for {channel['name']}: {str(e)}")
@@ -93,8 +108,10 @@ def check_and_tweet():
                     if e.response:
                         print(f"Response content: {e.response.text}")
 
+            # Always update the subscriber count
             channel["subscribers"] = current_count
 
+    # Write the updated channel data back to the JSON file
     with open('channel_data.json', 'w') as f:
         json.dump(channels, f, indent=4)
 
