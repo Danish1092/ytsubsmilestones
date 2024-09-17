@@ -25,34 +25,29 @@ client = tweepy.Client(
     wait_on_rate_limit=True,
 )
 
-# RapidAPI credentials
-API_KEY = "2f8f894712msh7d82c6769d2fd10p198299jsn06206fa10e88"
-API_HOST = "youtube138.p.rapidapi.com"
+# YouTube Data API v3 Key
+API_KEY = "AIzaSyCp54ej3PSv40-pqHtJp_k1eSbSYasldyU"
 
 def fetch_channel_details(channel_id):
-    url = f"https://youtube138.p.rapidapi.com/channel/details/?id={channel_id}"
-    headers = {
-        "x-rapidapi-key": API_KEY,
-        "x-rapidapi-host": API_HOST
-    }
+    url = f"https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id={channel_id}&key={API_KEY}"
 
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url)
         response.raise_for_status()
         data = response.json()
 
-        # Extracting the subscriber count
-        subscriber_count = data["stats"]["subscribers"]
+        if "items" in data and len(data["items"]) > 0:
+            channel_info = data["items"][0]
 
-        # Handling if subscriber count is an integer or string
-        if isinstance(subscriber_count, str):
-            subscriber_count = int(subscriber_count.replace('M', '000000').replace('K', '000').replace(',', ''))
+            # Extracting subscriber count
+            subscriber_count = int(channel_info["statistics"]["subscriberCount"])
+
+            # Extracting profile picture URL
+            profile_picture_url = channel_info["snippet"]["thumbnails"]["high"]["url"]
+            return subscriber_count, profile_picture_url
         else:
-            subscriber_count = int(subscriber_count)
-
-        # Extracting profile picture URL
-        profile_picture_url = data["avatar"][0]["url"] if data.get("avatar") else None
-        return subscriber_count, profile_picture_url
+            print(f"No details found for channel {channel_id}")
+            return None, None
 
     except requests.exceptions.RequestException as e:
         print(f"Error fetching details for channel {channel_id}: {str(e)}")
