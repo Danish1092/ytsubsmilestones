@@ -63,7 +63,7 @@ def check_and_tweet():
     # Loop through each channel in the JSON file
     for channel in channels:
         current_count, profile_pic_url = fetch_channel_details(channel["id"])
-        if current_count is not None and channel["subscribers"] is not None:
+        if current_count is not None:
             # Calculate the next million milestone
             current_milestone = (current_count // 1000000) * 1000000
             previous_milestone = channel.get("last_tweeted_milestone", 0)
@@ -103,7 +103,7 @@ def check_and_tweet():
                     if e.response:
                         print(f"Response content: {e.response.text}")
 
-            # Always update the subscriber count
+            # Always update the subscriber count to the latest one
             channel["subscribers"] = current_count
 
     # Write the updated channel data back to the JSON file
