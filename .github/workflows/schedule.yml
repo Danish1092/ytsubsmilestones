@@ -1,8 +1,8 @@
 name: YouTube Milestone Bot
 on:
   schedule:
-    - cron: "0 */4 * * *"  # This runs the job every 4 hours
-  workflow_dispatch: # Allows manual trigger if needed
+    - cron: "0 */4 * * *"  
+  workflow_dispatch: 
 permissions:
   contents: write
 jobs:
