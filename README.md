@@ -58,3 +58,5 @@ This YAML file defines the GitHub Actions workflow that automates the bot's exec
 - Installs necessary dependencies
 - Runs the main.py script
 - Commits and pushes any changes to the channel_data.json file
+
+## Bot Link: x.com/YTSubsTracker
