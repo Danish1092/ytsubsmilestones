@@ -22,7 +22,7 @@ YouTube Milestone Bot is an automated tool that tracks subscriber milestones for
 - `main.py`: The main script that fetches YouTube subscriber counts, checks for milestones, and posts tweets.
 - `update_channel_data.py`: A utility script to update the `channel_data.json` file with initial subscriber counts and last tweeted milestones.This script is used only for adding new channels to `channel_data.json` file for tracking.
 - `channel_data.json`: A JSON file containing the list of YouTube channels to monitor, along with their current subscriber counts and last tweeted milestones.
-- `.github/workflows/youtube_milestone_bot.yml`: The GitHub Actions workflow file that automates the bot's execution.
+- `.github/workflows/youtube_milestone_bot.yml`: The GitHub Actions workflow file that automates the bot's execution.It Runs the `main.py` every 4 hour.
 
 ## File Descriptions
 
