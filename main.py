@@ -4,6 +4,9 @@ import requests
 import json
 from io import BytesIO
 
+# The API keys are safe in GitHub Secrets! 🤫🔐
+# Good luck stealing them! 🕵️‍♂️
+# Sharing is caring, but not with API keys! Let's code!
 bearer_token = os.environ['TWITTER_BEARER_TOKEN']
 consumer_key = os.environ['TWITTER_CONSUMER_KEY']
 consumer_secret = os.environ['TWITTER_CONSUMER_SECRET']
