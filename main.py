@@ -1,14 +1,15 @@
+import os
 import tweepy
 import requests
 import json
 from io import BytesIO
 
 # Twitter API credentials
-bearer_token = "AAAAAAAAAAAAAAAAAAAAAO%2BIuQEAAAAAoKpWMVxs2qirbsdr3%2FZMaQCmt5g%3DjLb8hElyXKjXbAq3TF6iEGQtjdeXm8g3z39BrYgNFr3PhiDyQ9"
-consumer_key = "eNmC7WvB9jroA2t8z7O1nYEJA"
-consumer_secret = "RpL0Y6qtJmji9MlFRKxLUUuKsesjsHevSFOPYQAK5ZZ4DHMpFH"
-access_token = "1802930626775093248-79sbETqyPswk4akrh7DIXSYiqH63px"
-access_token_secret = "5f12eIWVCeavDgde90tsc6jvQuVrThfXtyrt2ZVS0lanQ"
+bearer_token = os.environ['TWITTER_BEARER_TOKEN']
+consumer_key = os.environ['TWITTER_CONSUMER_KEY']
+consumer_secret = os.environ['TWITTER_CONSUMER_SECRET']
+access_token = os.environ['TWITTER_ACCESS_TOKEN']
+access_token_secret = os.environ['TWITTER_ACCESS_TOKEN_SECRET']
 
 # V1 Twitter API Authentication for media uploads
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
@@ -26,7 +27,7 @@ client = tweepy.Client(
 )
 
 # YouTube Data API v3 Key
-API_KEY = "AIzaSyCp54ej3PSv40-pqHtJp_k1eSbSYasldyU"
+API_KEY = os.environ['YOUTUBE_API_KEY']
 
 def fetch_channel_details(channel_id):
     url = f"https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id={channel_id}&key={API_KEY}"
