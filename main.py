@@ -3,10 +3,9 @@ import tweepy
 import requests
 import json
 from io import BytesIO
+from supabase import create_client, Client
 
-# The API keys are safe in GitHub Secrets! 🤫🔐
-# Good luck stealing them! 🕵️‍♂️
-# Sharing is caring, but not with API keys! Let's code!
+# Environment variables for authentication
 bearer_token = os.environ['TWITTER_BEARER_TOKEN']
 consumer_key = os.environ['TWITTER_CONSUMER_KEY']
 consumer_secret = os.environ['TWITTER_CONSUMER_SECRET']
@@ -26,6 +25,11 @@ client = tweepy.Client(
     wait_on_rate_limit=True,
 )
 
+# Initialize Supabase client with service_role key
+url = os.environ['SUPABASE_URL']
+service_role_key = os.environ['SUPABASE_SERVICE_ROLE_KEY']  # Ensure this is set in GitHub Secrets
+supabase: Client = create_client(url, service_role_key)
+
 API_KEY = os.environ['YOUTUBE_API_KEY']
 
 def fetch_channel_details(channel_id):
@@ -38,9 +42,7 @@ def fetch_channel_details(channel_id):
 
         if "items" in data and len(data["items"]) > 0:
             channel_info = data["items"][0]
-
             subscriber_count = int(channel_info["statistics"]["subscriberCount"])
-
             profile_picture_url = channel_info["snippet"]["thumbnails"]["high"]["url"]
             return subscriber_count, profile_picture_url
         else:
@@ -52,8 +54,8 @@ def fetch_channel_details(channel_id):
         return None, None
 
 def check_and_tweet():
-    with open('channel_data.json', 'r') as f:
-        channels = json.load(f)
+    # Fetch channels from Supabase
+    channels = supabase.table('channels').select('*').execute().data
 
     tweets_sent = False
 
@@ -81,7 +83,6 @@ def check_and_tweet():
 
                     print(f"Tweet sent: {tweet_text}")
                     tweets_sent = True
-
                     channel["last_tweeted_milestone"] = current_milestone
 
                 except requests.exceptions.RequestException as e:
@@ -92,9 +93,14 @@ def check_and_tweet():
                         print(f"API Code: {e.api_code}")
                     if e.response:
                         print(f"Response content: {e.response.text}")
+            
             channel["subscribers"] = current_count
-    with open('channel_data.json', 'w') as f:
-        json.dump(channels, f, indent=4)
+
+            # Update channel data using service_role
+            supabase.table('channels').update({
+                'subscribers': current_count,
+                'last_tweeted_milestone': channel["last_tweeted_milestone"]
+            }).eq('id', channel['id']).execute()
 
     if not tweets_sent:
         print("No new milestones reached. Channel data updated.")
